@@ -333,7 +333,7 @@ class _DialogPickerDialState extends State<DialogPickerDial> with SingleTickerPr
 
   int _minuteHand(double angle) {
     // Result is in [0; 59], even if overall time is >= 1 hour
-    return (_angleToMinutes(angle) % 60.0).toInt();
+    return (_angleToMinutes(angle) % 60.0).ceil().toInt();
   }
 
   Duration _angleToDuration(double angle) {
@@ -342,7 +342,7 @@ class _DialogPickerDialState extends State<DialogPickerDial> with SingleTickerPr
 
   Duration _minutesToDuration(minutes) {
     return Duration(
-        hours: (minutes ~/ 60).toInt(), minutes: (minutes % 60.0).toInt());
+        hours: (minutes ~/ 60).toInt(), minutes: (minutes % 60.0).floor().toInt());
   }
 
   double _angleToMinutes(double angle) {
