@@ -163,8 +163,8 @@ class _DialPainter extends CustomPainter {
   }
 }
 
-class _Dial extends StatefulWidget {
-  const _Dial(
+class DialogPickerDial extends StatefulWidget {
+  const DialogPickerDial(
       {required this.duration, required this.onChanged, this.snapToMins = 1.0});
 
   final Duration duration;
@@ -172,11 +172,12 @@ class _Dial extends StatefulWidget {
 
   /// The resolution of mins of the dial, i.e. if snapToMins = 5.0, only durations of 5min intervals will be selectable.
   final double? snapToMins;
+
   @override
-  _DialState createState() => _DialState();
+  _DialogPickerDialState createState() => _DialogPickerDialState();
 }
 
-class _DialState extends State<_Dial> with SingleTickerProviderStateMixin {
+class _DialogPickerDialState extends State<DialogPickerDial> with SingleTickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
@@ -441,25 +442,26 @@ class _DialState extends State<_Dial> with SingleTickerProviderStateMixin {
     _minutes = _minuteHand(_turningAngle);
 
     return GestureDetector(
-        excludeFromSemantics: true,
-        onPanStart: _handlePanStart,
-        onPanUpdate: _handlePanUpdate,
-        onPanEnd: _handlePanEnd,
-        onTapUp: _handleTapUp,
-        child: CustomPaint(
-          painter: _DialPainter(
-            pct: _pct,
-            multiplier: _hours,
-            minuteHand: _minutes,
-            context: context,
-            selectedValue: selectedDialValue,
-            labels: _buildMinutes(theme.textTheme),
-            backgroundColor: backgroundColor,
-            accentColor: themeData.accentColor,
-            theta: _theta.value,
-            textDirection: Directionality.of(context),
-          ),
-        ));
+      excludeFromSemantics: true,
+      onPanStart: _handlePanStart,
+      onPanUpdate: _handlePanUpdate,
+      onPanEnd: _handlePanEnd,
+      onTapUp: _handleTapUp,
+      child: CustomPaint(
+        painter: _DialPainter(
+          pct: _pct,
+          multiplier: _hours,
+          minuteHand: _minutes,
+          context: context,
+          selectedValue: selectedDialValue,
+          labels: _buildMinutes(theme.textTheme),
+          backgroundColor: backgroundColor,
+          accentColor: themeData.accentColor,
+          theta: _theta.value,
+          textDirection: Directionality.of(context),
+        ),
+      ),
+    );
   }
 }
 
@@ -469,27 +471,26 @@ class _DialState extends State<_Dial> with SingleTickerProviderStateMixin {
 /// selected [Duration] if the user taps the "OK" button, or null if the user
 /// taps the "CANCEL" button. The selected time is reported by calling
 /// [Navigator.pop].
-class _DurationPickerDialog extends StatefulWidget {
+class DurationPickerDialogBody extends StatefulWidget {
   /// Creates a duration picker.
   ///
   /// [initialTime] must not be null.
-  const _DurationPickerDialog(
-      {Key? key,
-      required this.initialTime,
-      this.snapToMins = 1.0,
-      this.decoration})
-      : super(key: key);
+  const DurationPickerDialogBody({
+    Key? key,
+    required this.initialTime,
+    this.snapToMins = 1.0,
+  }) : super(key: key);
 
   /// The duration initially selected when the dialog is shown.
   final Duration initialTime;
   final double snapToMins;
-  final BoxDecoration? decoration;
 
   @override
-  _DurationPickerDialogState createState() => _DurationPickerDialogState();
+  _DurationPickerDialogBodyState createState() =>
+      _DurationPickerDialogBodyState();
 }
 
-class _DurationPickerDialogState extends State<_DurationPickerDialog> {
+class _DurationPickerDialogBodyState extends State<DurationPickerDialogBody> {
   @override
   void initState() {
     super.initState();
@@ -499,13 +500,11 @@ class _DurationPickerDialogState extends State<_DurationPickerDialog> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    localizations = MaterialLocalizations.of(context);
   }
 
   Duration? get selectedDuration => _selectedDuration;
   Duration? _selectedDuration;
-
-  late MaterialLocalizations localizations;
+  
 
   void _handleTimeChanged(Duration value) {
     setState(() {
@@ -513,82 +512,58 @@ class _DurationPickerDialogState extends State<_DurationPickerDialog> {
     });
   }
 
-  void _handleCancel() {
-    Navigator.pop(context);
-  }
-
-  void _handleOk() {
-    Navigator.pop(context, _selectedDuration);
-  }
-
   @override
   Widget build(BuildContext context) {
     assert(debugCheckHasMediaQuery(context));
     final theme = Theme.of(context);
-    final boxDecoration =
-        widget.decoration ?? BoxDecoration(color: theme.dialogBackgroundColor);
     final Widget picker = Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: AspectRatio(
-            aspectRatio: 1.0,
-            child: _Dial(
-              duration: _selectedDuration!,
-              onChanged: _handleTimeChanged,
-              snapToMins: widget.snapToMins,
-            )));
-
-    final Widget actions = ButtonBarTheme(
-        data: ButtonBarTheme.of(context),
-        child: ButtonBar(children: <Widget>[
-          TextButton(
-              onPressed: _handleCancel,
-              child: Text(localizations.cancelButtonLabel)),
-          TextButton(
-              onPressed: _handleOk, child: Text(localizations.okButtonLabel)),
-        ]));
-
-    final dialog = Dialog(child: OrientationBuilder(
-        builder: (BuildContext context, Orientation orientation) {
-      final Widget pickerAndActions = Container(
-        decoration: boxDecoration,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Expanded(
-                child:
-                    picker), // picker grows and shrinks with the available space
-            actions,
-          ],
+      padding: const EdgeInsets.all(16.0),
+      child: AspectRatio(
+        aspectRatio: 1.0,
+        child: DialogPickerDial(
+          duration: _selectedDuration!,
+          onChanged: _handleTimeChanged,
+          snapToMins: widget.snapToMins,
         ),
-      );
+      ),
+    );
 
-      switch (orientation) {
-        case Orientation.portrait:
-          return SizedBox(
-              width: _kDurationPickerWidthPortrait,
-              height: _kDurationPickerHeightPortrait,
-              child: Column(
+    final dialog = Dialog(
+      child: OrientationBuilder(
+        builder: (BuildContext context, Orientation orientation) {
+          switch (orientation) {
+            case Orientation.portrait:
+              return SizedBox(
+                width: _kDurationPickerWidthPortrait,
+                height: _kDurationPickerHeightPortrait,
+                child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: <Widget>[
                     Expanded(
-                      child: pickerAndActions,
+                      child: picker,
                     ),
-                  ]));
-        case Orientation.landscape:
-          return SizedBox(
-              width: _kDurationPickerWidthLandscape,
-              height: _kDurationPickerHeightLandscape,
-              child: Row(
+                  ],
+                ),
+              );
+            case Orientation.landscape:
+              return SizedBox(
+                width: _kDurationPickerWidthLandscape,
+                height: _kDurationPickerHeightLandscape,
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: <Widget>[
                     Flexible(
-                      child: pickerAndActions,
+                      child: picker,
                     ),
-                  ]));
-      }
-    }));
+                  ],
+                ),
+              );
+          }
+        },
+      ),
+    );
 
     return Theme(
       data: theme.copyWith(
@@ -617,17 +592,16 @@ class _DurationPickerDialogState extends State<_DurationPickerDialog> {
 ///   context: context,
 /// );
 /// ```
-Future<Duration?> showDurationPicker(
-    {required BuildContext context,
-    required Duration initialTime,
-    double snapToMins = 1.0,
-    BoxDecoration? decoration}) async {
+Future<Duration?> showDurationPicker({
+  required BuildContext context,
+  required Duration initialTime,
+  double snapToMins = 1.0,
+}) async {
   return await showDialog<Duration>(
     context: context,
-    builder: (BuildContext context) => _DurationPickerDialog(
+    builder: (BuildContext context) => DurationPickerDialogBody(
       initialTime: initialTime,
       snapToMins: snapToMins,
-      decoration: decoration,
     ),
   );
 }
@@ -640,29 +614,32 @@ class DurationPicker extends StatelessWidget {
   final double? width;
   final double? height;
 
-  DurationPicker(
-      {this.duration = const Duration(minutes: 0),
-      required this.onChange,
-      this.snapToMins,
-      this.width,
-      this.height});
+  DurationPicker({
+    this.duration = const Duration(minutes: 0),
+    required this.onChange,
+    this.snapToMins,
+    this.width,
+    this.height,
+  });
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-        width: width ?? _kDurationPickerWidthPortrait / 1.5,
-        height: height ?? _kDurationPickerHeightPortrait / 1.5,
-        child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[
-              Expanded(
-                child: _Dial(
-                  duration: duration,
-                  onChanged: onChange,
-                  snapToMins: snapToMins,
-                ),
-              ),
-            ]));
+      width: width ?? _kDurationPickerWidthPortrait / 1.5,
+      height: height ?? _kDurationPickerHeightPortrait / 1.5,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          Expanded(
+            child: DialogPickerDial(
+              duration: duration,
+              onChanged: onChange,
+              snapToMins: snapToMins,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
